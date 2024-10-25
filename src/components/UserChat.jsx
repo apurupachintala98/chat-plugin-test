@@ -149,13 +149,10 @@ function UserChat(props) {
 
     // Prevent empty messages
     if (!input.trim()) return;
-
-    // Validate appCd and requestId
     if (!appCd.trim() || !requestId.trim()) {
       setError('Please provide valid app_cd and request_id.');
       return;
     }
-
     const newMessage = {
       role: 'user',
       content: input,
@@ -166,54 +163,57 @@ function UserChat(props) {
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
     setShowInitialView(false);
-    resetInactivityTimeout(); // Reset the inactivity timer on user action
     try {
       // Dynamic API URL based on user inputs
-      const url = `${apiPath}?app_cd=${appCd}&request_id=${requestId}`;
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify([newMessage]),
-      });
+      const response = await fetch(
+
+        `http://10.126.192.122:8001/get_llm_response/?app_cd=${appCd}&request_id=${requestId}`,
+
+        {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify([newMessage]),
+        }
+      );
       // Check if response is okay
       if (!response.ok) {
-        if (response.status >= 500) {
-          throw new Error('Server error, please try again later.');
-        } else if (response.status === 404) {
-          throw new Error('API endpoint not found.');
-        } else if (response.status === 400) {
-          throw new Error('Bad request. Please check the input parameters.');
-        } else {
-          throw new Error('Network response was not ok');
-        }
+        throw new Error('Network response was not ok');
       }
-
       const data = await response.json();
+      // Convert final_response_flag to a string if it is a boolean true
+      if (data.final_response_flag === true) {
+        data.final_response_flag = "true"; // Change the boolean true to the string "true"
+      }
       setApiResponse(data);
-      // const convertToString = (input) => {
-      //   if (typeof input === 'string') {
-      //     return input;
-      //   } else if (Array.isArray(input)) {
-      //     return input.map(convertToString).join(', ');
-      //   } else if (typeof input === 'object' && input !== null) {
-      //     return Object.entries(input)
-      //       .map(([key, value]) => `${key}: ${convertToString(value)}`)
-      //       .join(', ');
-      //   }
-      //   return String(input);
-      // };
-      const modelReply = data?.modelreply || 'No valid reply found';
-      const parsedMessageContent = parseMessageContent(modelReply);      
+
+      // Function to convert any object to a string
+      const convertToString = (input) => {
+        if (typeof input === 'string') {
+          return input; // Return string directly
+        } else if (Array.isArray(input)) {
+          // If it's an array, recursively convert each item
+          return input.map(convertToString).join(', ');
+        } else if (typeof input === 'object' && input !== null) {
+          // If it's an object, convert each key-value pair
+          return Object.entries(input)
+            .map(([key, value]) => `${key}: ${convertToString(value)}`)
+            .join(', ');
+        }
+        return String(input); // Fallback for other types (number, boolean, etc.)
+      };
+      let modelReply = 'No valid reply found.'; // Default message
+      if (data.modelreply) {
+        modelReply = convertToString(data.modelreply); // Convert modelreply to string
+      }
       const botMessage = {
         role: 'assistant',
-        content: parsedMessageContent,
+        content: modelReply,
       };
-
       setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
-
     } catch (err) {
-      // Enhanced error messaging
-      setError(`Error: ${err.message || 'Error communicating with backend'}`);
+      setError('Error communicating with backend');
       console.error(err);
     } finally {
       setIsLoading(false); // Set loading state to false
