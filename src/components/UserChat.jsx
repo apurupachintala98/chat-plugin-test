@@ -203,7 +203,8 @@ function UserChat(props) {
       //   return String(input);
       // };
       const modelReply = data?.modelreply || 'No valid reply found';
-      const parsedMessageContent = parseMessageContent(modelReply);      const botMessage = {
+      const parsedMessageContent = parseMessageContent(modelReply);      
+      const botMessage = {
         role: 'assistant',
         content: parsedMessageContent,
       };

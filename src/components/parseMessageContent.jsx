@@ -1,4 +1,6 @@
-import React from 'react';
+// parseMessageContent.js
+
+import React from 'react'; // Ensure React is imported if you're returning JSX
 import { Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 
 const convertToString = (input) => {
@@ -15,36 +17,29 @@ const convertToString = (input) => {
 };
 
 const parseMessageContent = (input) => {
-  // Safeguard for empty or undefined input
   if (!input || typeof input !== 'object') {
     return <Typography variant="body2">No data available</Typography>;
   }
 
-  // Safeguard to ensure modelreply exists and is an object
   if (typeof input.modelreply !== 'object' || !input.modelreply) {
     return <Typography variant="body2">Invalid or missing data</Typography>;
   }
 
-  // Get the table headers (keys) from the modelreply object
   const tableHeaders = Object.keys(input.modelreply);
 
-  // Safeguard: Ensure there's at least one key (column) to display
   if (tableHeaders.length === 0) {
     return <Typography variant="body2">No data available</Typography>;
   }
 
-  // Safeguard: Ensure that input.modelreply[tableHeaders[0]] exists and is an array
   const firstColumnData = input.modelreply[tableHeaders[0]];
   if (!Array.isArray(firstColumnData)) {
     return <Typography variant="body2">Unexpected data format</Typography>;
   }
 
-  // Create the rows by iterating over the first column's entries (assuming all columns have the same number of rows)
   const tableData = firstColumnData.map((_, index) => {
     return tableHeaders.map(header => input.modelreply[header][index] || '');
   });
 
-  // Render the table
   return (
     <Table size="small">
       <TableHead>
