@@ -5,7 +5,9 @@ import HashLoader from 'react-spinners/HashLoader';
 import ChatMessage from './ChatMessage';
 import Feedback from './Feedback';
 import { Box, Grid, TextField, Button, IconButton, Typography, InputAdornment, Toolbar, useTheme, useMediaQuery, Modal, Backdrop, Fade } from '@mui/material';
-import parseMessageContent from './parseMessageContent';
+import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
+import ChartModal from './ChartModal';
+// import parseMessageContent from './parseMessageContent';
 
 function UserChat(props) {
   const theme = useTheme();
@@ -33,6 +35,7 @@ function UserChat(props) {
   const [openPopup, setOpenPopup] = useState(false);
   const INACTIVITY_TIME = 10 * 60 * 1000;
   const [serverError, setServerError] = useState(null);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -40,6 +43,13 @@ function UserChat(props) {
     }
   }, [chatLog]);
 
+  const handleGraphClick = () => {
+      setIsModalVisible(true);
+    };
+
+    const handleModalClose = () => {
+      setIsModalVisible(false);
+    };
   // Handle session end due to inactivity
   const handleSessionEnd = () => {
     setSessionActive(false);
@@ -144,31 +154,108 @@ function UserChat(props) {
 
   // Handle focus or input changes
 
+  // async function handleSubmit(e) {
+  //   e.preventDefault();
+
+  //   // Prevent empty messages
+  //   if (!input.trim()) return;
+  //   if (!appCd.trim() || !requestId.trim()) {
+  //     setError('Please provide valid app_cd and request_id.');
+  //     return;
+  //   }
+  //   const newMessage = {
+  //     role: 'user',
+  //     content: input,
+  //   };
+  //   const newChatLog = [...chatLog, newMessage]; // Add user's message to chat log
+  //   setChatLog(newChatLog);
+  //   setInput(''); // Clear the input field
+  //   setIsLoading(true); // Set loading state
+  //   setError(''); // Clear any previous error
+  //   setShowInitialView(false);
+  //   try {
+  //     // Dynamic API URL based on user inputs
+  //     const response = await fetch(
+  //       `http://localhost:8000/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
+  //       // `http://10.126.192.122:8001/get_llm_response/?app_cd=${appCd}&request_id=${requestId}`,
+
+  //       {
+  //         method: 'PUT',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify([newMessage]),
+  //       }
+  //     );
+  //     // Check if response is okay
+  //     if (!response.ok) {
+  //       throw new Error('Network response was not ok');
+  //     }
+  //     const data = await response.json();
+  //     // Convert final_response_flag to a string if it is a boolean true
+  //     if (data.final_response_flag === true) {
+  //       data.final_response_flag = "true"; // Change the boolean true to the string "true"
+  //     }
+  //     setApiResponse(data);
+
+  //     // Function to convert any object to a string
+  //     const convertToString = (input) => {
+  //       if (typeof input === 'string') {
+  //         return input; // Return string directly
+  //       } else if (Array.isArray(input)) {
+  //         // If it's an array, recursively convert each item
+  //         return input.map(convertToString).join(', ');
+  //       } else if (typeof input === 'object' && input !== null) {
+  //         // If it's an object, convert each key-value pair
+  //         return Object.entries(input)
+  //           .map(([key, value]) => `${key}: ${convertToString(value)}`)
+  //           .join(', ');
+  //       }
+  //       return String(input); // Fallback for other types (number, boolean, etc.)
+  //     };
+  //     let modelReply = 'No valid reply found.'; // Default message
+  //     if (data.modelreply) {
+  //       modelReply = convertToString(data.modelreply); // Convert modelreply to string
+  //     }
+  //     const botMessage = {
+  //       role: 'assistant',
+  //       content: modelReply,
+  //     };
+  //     setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
+  //   } catch (err) {
+  //     setError('Error communicating with backend');
+  //     console.error(err);
+  //   } finally {
+  //     setIsLoading(false); // Set loading state to false
+  //   }
+  // }
+
   async function handleSubmit(e) {
     e.preventDefault();
-
+  
     // Prevent empty messages
     if (!input.trim()) return;
     if (!appCd.trim() || !requestId.trim()) {
       setError('Please provide valid app_cd and request_id.');
       return;
     }
+    
     const newMessage = {
       role: 'user',
       content: input,
     };
+    
     const newChatLog = [...chatLog, newMessage]; // Add user's message to chat log
     setChatLog(newChatLog);
     setInput(''); // Clear the input field
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
     setShowInitialView(false);
+    
     try {
       // Dynamic API URL based on user inputs
       const response = await fetch(
-
-        `http://10.126.192.122:8001/get_llm_response/?app_cd=${appCd}&request_id=${requestId}`,
-
+        `http://localhost:8000/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
         {
           method: 'PUT',
           headers: {
@@ -177,40 +264,107 @@ function UserChat(props) {
           body: JSON.stringify([newMessage]),
         }
       );
+      
       // Check if response is okay
       if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.json();
-      // Convert final_response_flag to a string if it is a boolean true
-      if (data.final_response_flag === true) {
-        data.final_response_flag = "true"; // Change the boolean true to the string "true"
-      }
-      setApiResponse(data);
+          // Define image URLs
+      const pageNotFoundImage = '../images/page-not-found-error.png';        // Replace with actual path or URL to your 404 image
+      const internalErrorImage = '../images/internal-error.jpg';       // Replace with actual path or URL to your 500 image
+      const genericErrorImage = '../images/generic-error.png';  // Replace with a generic error image if needed
 
-      // Function to convert any object to a string
+      let errorMessage = '';
+      let imageUrl = '';
+      
+      if (response.status === 404) {
+        errorMessage = '404 - Not Found';
+        imageUrl = pageNotFoundImage;  
+      } else if (response.status === 500) {
+        errorMessage = '500 - Internal Server Error';
+        imageUrl = internalErrorImage;
+      } else {
+        errorMessage = `${response.status} - ${response.statusText}`;
+        imageUrl = genericErrorImage;  
+      }
+
+        // Display the image and error message
+        const botMessage = {
+          role: 'assistant',
+          content: (
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <img src={imageUrl} alt="error" style={{ width: '50px', height: '50px', marginRight: '10px' }} />
+              <span>{errorMessage}</span>
+            </div>
+          ),
+        };
+  
+        setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's error message
+        throw new Error(errorMessage); // Re-throw the error for logging purposes
+      }
+  
+      const data = await response.json();
+      setApiResponse(data);
+  
+      // Function to convert object to string (if needed)
       const convertToString = (input) => {
         if (typeof input === 'string') {
-          return input; // Return string directly
+          return input;
         } else if (Array.isArray(input)) {
-          // If it's an array, recursively convert each item
+          // Recursively convert array items
           return input.map(convertToString).join(', ');
         } else if (typeof input === 'object' && input !== null) {
-          // If it's an object, convert each key-value pair
+          // Convert key-value pairs
           return Object.entries(input)
             .map(([key, value]) => `${key}: ${convertToString(value)}`)
             .join(', ');
         }
-        return String(input); // Fallback for other types (number, boolean, etc.)
+        return String(input);
       };
+  
+      // Determine how to handle the response
       let modelReply = 'No valid reply found.'; // Default message
       if (data.modelreply) {
-        modelReply = convertToString(data.modelreply); // Convert modelreply to string
+        // Check if the response is a JSON array of objects
+        if (Array.isArray(data.modelreply) && data.modelreply.every(item => typeof item === 'object')) {
+          // Convert to table-like format with borders for display
+          modelReply = (
+            <div style={{ display: 'flex', alignItems: 'start' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+              <thead>
+                <tr>
+                  {Object.keys(data.modelreply[0]).map((key) => (
+                    <th key={key} style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>{key}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.modelreply.map((row, rowIndex) => (
+                  <tr key={rowIndex}>
+                    {Object.values(row).map((val, colIndex) => (
+                      <td key={colIndex} style={{ border: '1px solid black', padding: '8px' }}>{convertToString(val)}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            <TimelineOutlinedIcon 
+  onClick={handleGraphClick} 
+  style={{ marginRight: '10px', marginLeft: '10px' }} 
+/>            </div>
+          );
+        } else if (typeof data.modelreply === 'string') {
+          // If it's a string, display it as text
+          modelReply = data.modelreply;
+        } else {
+          // Otherwise, convert to string
+          modelReply = convertToString(data.modelreply);
+        }
       }
+  
       const botMessage = {
         role: 'assistant',
         content: modelReply,
       };
+      
       setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
     } catch (err) {
       setError('Error communicating with backend');
@@ -219,6 +373,9 @@ function UserChat(props) {
       setIsLoading(false); // Set loading state to false
     }
   }
+  
+  
+  
   const handleInputFocusOrChange = () => {
     setShowInitialView(false);
     resetInactivityTimeout();
@@ -339,7 +496,11 @@ function UserChat(props) {
           </Grid>
         </Grid>
       </Box>
-
+      <ChartModal
+  visible={isModalVisible}
+  onClose={handleModalClose}
+  chartData={apiResponse?.modelreply || []}  // Ensure you pass valid JSON data
+/>
       <Modal open={openPopup}
         onClose={() => setOpenPopup(false)}
         closeAfterTransition
