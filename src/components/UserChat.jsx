@@ -3,11 +3,9 @@ import { Alert } from 'flowbite-react';
 import { FaTelegramPlane } from 'react-icons/fa';
 import HashLoader from 'react-spinners/HashLoader';
 import ChatMessage from './ChatMessage';
-import Feedback from './Feedback';
 import { Box, Grid, TextField, Button, IconButton, Typography, InputAdornment, Toolbar, useTheme, useMediaQuery, Modal, Backdrop, Fade } from '@mui/material';
-import TimelineOutlinedIcon from '@mui/icons-material/TimelineOutlined';
 import ChartModal from './ChartModal';
-// import parseMessageContent from './parseMessageContent';
+import BarChartIcon from '@mui/icons-material/BarChart';
 
 function UserChat(props) {
   const theme = useTheme();
@@ -346,10 +344,16 @@ function UserChat(props) {
                 ))}
               </tbody>
             </table>
-            <TimelineOutlinedIcon 
-  onClick={handleGraphClick} 
-  style={{ marginRight: '10px', marginLeft: '10px' }} 
-/>            </div>
+            <Button
+      variant="contained"
+      color="primary"
+      startIcon={<BarChartIcon />}
+      sx={{ display: 'flex', alignItems: 'center', padding: '8px 16px', marginLeft: '15px', width: '190px', fontSize: '10px', fontWeight: 'bold' }}
+      onClick={handleGraphClick}
+    >
+      Graph View
+    </Button>
+</div>
           );
         } else if (typeof data.modelreply === 'string') {
           // If it's a string, display it as text
