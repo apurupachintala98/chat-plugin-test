@@ -3,7 +3,7 @@ import { Avatar, Box, Typography, Paper } from '@mui/material';
 import chatbot from '../images/chatbot.png';
 import user from '../images/user.png';
 
-const ChatMessage = ({ chatLog, parseMessageContent }) => {
+const ChatMessage = ({ chatLog }) => {
   return (
     <Box sx={{ width: '100%', padding: '10px 0' }}>
       {chatLog.map((chat, index) => (
@@ -44,7 +44,7 @@ const ChatMessage = ({ chatLog, parseMessageContent }) => {
                   sx={{ mr: 2, borderRadius: '50%', width: 32, height: 32 }}
                 />
                 <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 'bold' }}>
-                  {parseMessageContent(chat.content)}
+                  {chat.content}
                 </Typography>
               </Box>
             ) : (
