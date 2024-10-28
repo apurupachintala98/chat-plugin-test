@@ -305,7 +305,7 @@ function UserChat(props) {
             Error
           </Typography>
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', mt: 2 }}>
-            <img src={errorImageUrl} alt="Error" style={{ width: '200px', height: '200px', marginBottom: '15px' }} />
+            <img src={errorImageUrl} alt="Error" style={{ width: '600px', height: '600px', marginBottom: '15px' }} />
             <Typography id="error-modal-description" align="center">
               {errorMessage}
             </Typography>
