@@ -42,12 +42,12 @@ function UserChat(props) {
   }, [chatLog]);
 
   const handleGraphClick = () => {
-      setIsModalVisible(true);
-    };
+    setIsModalVisible(true);
+  };
 
-    const handleModalClose = () => {
-      setIsModalVisible(false);
-    };
+  const handleModalClose = () => {
+    setIsModalVisible(false);
+  };
   // Handle session end due to inactivity
   const handleSessionEnd = () => {
     setSessionActive(false);
@@ -230,26 +230,26 @@ function UserChat(props) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-  
+
     // Prevent empty messages
     if (!input.trim()) return;
     if (!appCd.trim() || !requestId.trim()) {
       setError('Please provide valid app_cd and request_id.');
       return;
     }
-    
+
     const newMessage = {
       role: 'user',
       content: input,
     };
-    
+
     const newChatLog = [...chatLog, newMessage]; // Add user's message to chat log
     setChatLog(newChatLog);
     setInput(''); // Clear the input field
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
     setShowInitialView(false);
-    
+
     try {
       // Dynamic API URL based on user inputs
       const response = await fetch(
@@ -262,27 +262,27 @@ function UserChat(props) {
           body: JSON.stringify([newMessage]),
         }
       );
-      
+
       // Check if response is okay
       if (!response.ok) {
-          // Define image URLs
-      const pageNotFoundImage = '../images/page-not-found-error.png';        // Replace with actual path or URL to your 404 image
-      const internalErrorImage = '../images/internal-error.jpg';       // Replace with actual path or URL to your 500 image
-      const genericErrorImage = '../images/generic-error.png';  // Replace with a generic error image if needed
+        // Define image URLs
+        const pageNotFoundImage = '../images/page-not-found-error.png';        // Replace with actual path or URL to your 404 image
+        const internalErrorImage = '../images/internal-error.jpg';       // Replace with actual path or URL to your 500 image
+        const genericErrorImage = '../images/generic-error.png';  // Replace with a generic error image if needed
 
-      let errorMessage = '';
-      let imageUrl = '';
-      
-      if (response.status === 404) {
-        errorMessage = '404 - Not Found';
-        imageUrl = pageNotFoundImage;  
-      } else if (response.status === 500) {
-        errorMessage = '500 - Internal Server Error';
-        imageUrl = internalErrorImage;
-      } else {
-        errorMessage = `${response.status} - ${response.statusText}`;
-        imageUrl = genericErrorImage;  
-      }
+        let errorMessage = '';
+        let imageUrl = '';
+
+        if (response.status === 404) {
+          errorMessage = '404 - Not Found';
+          imageUrl = pageNotFoundImage;
+        } else if (response.status === 500) {
+          errorMessage = '500 - Internal Server Error';
+          imageUrl = internalErrorImage;
+        } else {
+          errorMessage = `${response.status} - ${response.statusText}`;
+          imageUrl = genericErrorImage;
+        }
 
         // Display the image and error message
         const botMessage = {
@@ -294,14 +294,14 @@ function UserChat(props) {
             </div>
           ),
         };
-  
+
         setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's error message
         throw new Error(errorMessage); // Re-throw the error for logging purposes
       }
-  
+
       const data = await response.json();
       setApiResponse(data);
-  
+
       // Function to convert object to string (if needed)
       const convertToString = (input) => {
         if (typeof input === 'string') {
@@ -317,43 +317,46 @@ function UserChat(props) {
         }
         return String(input);
       };
-  
+
       // Determine how to handle the response
       let modelReply = 'No valid reply found.'; // Default message
       if (data.modelreply) {
         // Check if the response is a JSON array of objects
         if (Array.isArray(data.modelreply) && data.modelreply.every(item => typeof item === 'object')) {
+          const columnCount = Object.keys(data.modelreply[0]).length;
           // Convert to table-like format with borders for display
           modelReply = (
             <div style={{ display: 'flex', alignItems: 'start' }}>
-            <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-              <thead>
-                <tr>
-                  {Object.keys(data.modelreply[0]).map((key) => (
-                    <th key={key} style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>{key}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {data.modelreply.map((row, rowIndex) => (
-                  <tr key={rowIndex}>
-                    {Object.values(row).map((val, colIndex) => (
-                      <td key={colIndex} style={{ border: '1px solid black', padding: '8px' }}>{convertToString(val)}</td>
+              <table style={{ borderCollapse: 'collapse', width: '100%' }}>
+                <thead>
+                  <tr>
+                    {Object.keys(data.modelreply[0]).map((key) => (
+                      <th key={key} style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>{key}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <Button
-      variant="contained"
-      color="primary"
-      startIcon={<BarChartIcon />}
-      sx={{ display: 'flex', alignItems: 'center', padding: '8px 16px', marginLeft: '15px', width: '190px', fontSize: '10px', fontWeight: 'bold' }}
-      onClick={handleGraphClick}
-    >
-      Graph View
-    </Button>
-</div>
+                </thead>
+                <tbody>
+                  {data.modelreply.map((row, rowIndex) => (
+                    <tr key={rowIndex}>
+                      {Object.values(row).map((val, colIndex) => (
+                        <td key={colIndex} style={{ border: '1px solid black', padding: '8px' }}>{convertToString(val)}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {columnCount > 1 && (
+                <Button
+                  variant="contained"
+                  color="primary"
+                  startIcon={<BarChartIcon />}
+                  sx={{ display: 'flex', alignItems: 'center', padding: '8px 16px', marginLeft: '15px', width: '190px', fontSize: '10px', fontWeight: 'bold' }}
+                  onClick={handleGraphClick}
+                >
+                  Graph View
+                </Button>
+              )}
+            </div>
           );
         } else if (typeof data.modelreply === 'string') {
           // If it's a string, display it as text
@@ -363,12 +366,12 @@ function UserChat(props) {
           modelReply = convertToString(data.modelreply);
         }
       }
-  
+
       const botMessage = {
         role: 'assistant',
         content: modelReply,
       };
-      
+
       setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
     } catch (err) {
       setError('Error communicating with backend');
@@ -377,9 +380,7 @@ function UserChat(props) {
       setIsLoading(false); // Set loading state to false
     }
   }
-  
-  
-  
+
   const handleInputFocusOrChange = () => {
     setShowInitialView(false);
     resetInactivityTimeout();
@@ -501,10 +502,10 @@ function UserChat(props) {
         </Grid>
       </Box>
       <ChartModal
-  visible={isModalVisible}
-  onClose={handleModalClose}
-  chartData={apiResponse?.modelreply || []}  // Ensure you pass valid JSON data
-/>
+        visible={isModalVisible}
+        onClose={handleModalClose}
+        chartData={apiResponse?.modelreply || []}  // Ensure you pass valid JSON data
+      />
       <Modal open={openPopup}
         onClose={() => setOpenPopup(false)}
         closeAfterTransition
