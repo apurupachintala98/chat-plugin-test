@@ -253,7 +253,7 @@ function UserChat(props) {
     try {
       // Dynamic API URL based on user inputs
       const response = await fetch(
-        `http://localhost:8000/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
+        `http://localhost:8001/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
         {
           method: 'PUT',
           headers: {
@@ -323,7 +323,8 @@ function UserChat(props) {
       if (data.modelreply) {
         // Check if the response is a JSON array of objects
         if (Array.isArray(data.modelreply) && data.modelreply.every(item => typeof item === 'object')) {
-          const columnCount = Object.keys(data.modelreply[0]).length;
+          // const columnCount = Object.keys(data.modelreply[0]).length;
+          const rowCount = data.modelreply.length;
           // Convert to table-like format with borders for display
           modelReply = (
             <div style={{ display: 'flex', alignItems: 'start' }}>
@@ -345,7 +346,7 @@ function UserChat(props) {
                   ))}
                 </tbody>
               </table>
-              {columnCount > 1 && (
+              {rowCount > 1 && (
                 <Button
                   variant="contained"
                   color="primary"
