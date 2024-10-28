@@ -6,6 +6,9 @@ import ChatMessage from './ChatMessage';
 import { Box, Grid, TextField, Button, IconButton, Typography, InputAdornment, Toolbar, useTheme, useMediaQuery, Modal, Backdrop, Fade } from '@mui/material';
 import ChartModal from './ChartModal';
 import BarChartIcon from '@mui/icons-material/BarChart';
+import pageNotFoundImage from '../images/page-not-found-error.png';
+import internalErrorImage from '../images/internal-error.jpg';
+import genericErrorImage from '../images/generic-error.png';
 
 function UserChat(props) {
   const theme = useTheme();
@@ -248,7 +251,7 @@ function UserChat(props) {
     setInput(''); // Clear the input field
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
-    setShowInitialView(false);
+    setShowInitialView(false);    
 
     try {
       // Dynamic API URL based on user inputs
@@ -265,14 +268,10 @@ function UserChat(props) {
 
       // Check if response is okay
       if (!response.ok) {
-        // Define image URLs
-        const pageNotFoundImage = '../images/page-not-found-error.png';        // Replace with actual path or URL to your 404 image
-        const internalErrorImage = '../images/internal-error.jpg';       // Replace with actual path or URL to your 500 image
-        const genericErrorImage = '../images/generic-error.png';  // Replace with a generic error image if needed
-
         let errorMessage = '';
         let imageUrl = '';
 
+        // Handle different status codes
         if (response.status === 404) {
           errorMessage = '404 - Not Found';
           imageUrl = pageNotFoundImage;
@@ -288,9 +287,9 @@ function UserChat(props) {
         const botMessage = {
           role: 'assistant',
           content: (
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-              <img src={imageUrl} alt="error" style={{ width: '50px', height: '50px', marginRight: '10px' }} />
-              <span>{errorMessage}</span>
+            <div style={{ display: 'flex', alignItems: 'center' , flexDirection: 'column'}}>
+              <img src={imageUrl} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
+              <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
             </div>
           ),
         };
@@ -323,7 +322,7 @@ function UserChat(props) {
       if (data.modelreply) {
         // Check if the response is a JSON array of objects
         if (Array.isArray(data.modelreply) && data.modelreply.every(item => typeof item === 'object')) {
-          // const columnCount = Object.keys(data.modelreply[0]).length;
+          const columnCount = Object.keys(data.modelreply[0]).length;
           const rowCount = data.modelreply.length;
           // Convert to table-like format with borders for display
           modelReply = (
@@ -346,7 +345,7 @@ function UserChat(props) {
                   ))}
                 </tbody>
               </table>
-              {rowCount > 1 && (
+              {(rowCount > 1 || columnCount > 1) && (
                 <Button
                   variant="contained"
                   color="primary"
@@ -375,8 +374,25 @@ function UserChat(props) {
 
       setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
     } catch (err) {
-      setError('Error communicating with backend');
-      console.error(err);
+      // setError('Error communicating with backend');
+      // console.error(err);
+      // Catch network errors or other unexpected issues
+    let fallbackErrorMessage = 'An error occurred. Please try again later.';
+    const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
+
+    const errorMessage = {
+      role: 'assistant',
+      content: (
+        <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+          <img src={fallbackErrorImage} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
+          <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
+        </div>
+      ),
+    };
+    
+    setChatLog([...newChatLog, errorMessage]); // Display fallback error message
+    setError('Error communicating with backend');
+    console.error('Error:', err);
     } finally {
       setIsLoading(false); // Set loading state to false
     }
