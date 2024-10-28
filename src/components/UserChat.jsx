@@ -5,11 +5,10 @@ import HashLoader from 'react-spinners/HashLoader';
 import ChatMessage from './ChatMessage';
 import { Box, Grid, TextField, Button, IconButton, Typography, InputAdornment, Toolbar, useTheme, useMediaQuery, Modal, Backdrop, Fade } from '@mui/material';
 import ChartModal from './ChartModal';
-import CloseIcon from '@mui/icons-material/Close';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import pageNotFoundImage from '../images/page-not-found-error.png';
-import internalErrorImage from '../images/internal-error.jpg';
-import genericErrorImage from '../images/generic-error.png';
+// import pageNotFoundImage from '../images/page-not-found-error.png';
+// import internalErrorImage from '../images/internal-error.jpg';
+// import genericErrorImage from '../images/generic-error.png';
 
 function UserChat(props) {
   const theme = useTheme();
@@ -36,24 +35,7 @@ function UserChat(props) {
   const [sessionActive, setSessionActive] = useState(true); // State to track session activity
   const [openPopup, setOpenPopup] = useState(false);
   const INACTIVITY_TIME = 10 * 60 * 1000;
-  const [serverError, setServerError] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  // State to control the modal visibility
-  const [openErrorModal, setOpenErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [errorImageUrl, setErrorImageUrl] = useState('');
-
-  // Function to open the error modal
-  const handleOpenErrorModal = (message, imageUrl) => {
-    setErrorMessage(message);
-    setErrorImageUrl(imageUrl);
-    setOpenErrorModal(true); // Show the modal
-  };
-
-  // Function to close the error modal
-  const handleCloseErrorModal = () => {
-    setOpenErrorModal(false); // Hide the modal
-  };
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -132,28 +114,25 @@ function UserChat(props) {
         // Handle different status codes
         if (response.status === 404) {
           errorMessage = '404 - Not Found';
-          imageUrl = pageNotFoundImage;
+          // imageUrl = pageNotFoundImage;
         } else if (response.status === 500) {
           errorMessage = '500 - Internal Server Error';
-          imageUrl = internalErrorImage;
+          // imageUrl = internalErrorImage;
         } else {
           errorMessage = `${response.status} - ${response.statusText}`;
-          imageUrl = genericErrorImage;
+          // imageUrl = genericErrorImage;
         }
 
         // // Display the image and error message
-        // const botMessage = {
-        //   role: 'assistant',
-        //   content: (
-        //     <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-        //       <img src={imageUrl} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
-        //       <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
-        //     </div>
-        //   ),
-        // };
-
-        // Show the error modal
-        handleOpenErrorModal(errorMessage, imageUrl);
+        const botMessage = {
+          role: 'assistant',
+          content: (
+            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+              {/* <img src={imageUrl} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} /> */}
+              <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
+            </div>
+          ),
+        };
 
         setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's error message
         throw new Error(errorMessage); // Re-throw the error for logging purposes
@@ -238,10 +217,19 @@ function UserChat(props) {
       // setError('Error communicating with backend');
       // console.error(err);
       // Catch network errors or other unexpected issues
-      let fallbackErrorMessage = 'An error occurred. Please try again later.';
-      const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
-      // Show the fallback error modal
-      handleOpenErrorModal(fallbackErrorMessage, fallbackErrorImage);
+      let fallbackErrorMessage = 'Error communicating with backend.';
+      // const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
+      const errorMessage = {
+        role: 'assistant',
+        content: (
+          <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+            {/* <img src={fallbackErrorImage} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} /> */}
+            <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
+          </div>
+        ),
+      };
+
+      setChatLog([...newChatLog, errorMessage]);
       setError('Error communicating with backend');
       console.error('Error:', err);
     } finally {
@@ -271,46 +259,6 @@ function UserChat(props) {
       flexDirection: 'column',
       margin: 'auto', ...customStyles.container
     }}>
-
-      {/* Error Modal */}
-      <Modal
-        open={openErrorModal}
-        onClose={handleCloseErrorModal}
-        aria-labelledby="error-modal-title"
-        aria-describedby="error-modal-description"
-      >
-        <Box
-          sx={{
-            position: 'absolute',
-            top: '50%',
-            left: '50%',
-            transform: 'translate(-50%, -50%)',
-            width: '50%',
-            bgcolor: 'background.paper',
-            boxShadow: 24,
-            p: 4,
-            borderRadius: '10px',
-          }}
-        >
-          <IconButton
-            aria-label="close"
-            onClick={handleCloseErrorModal}
-            sx={{ position: 'absolute', top: 10, right: 10 }}
-          >
-            <CloseIcon />
-          </IconButton>
-
-          <Typography id="error-modal-title" variant="h6" component="h2" align="center">
-            Error
-          </Typography>
-          <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', flexDirection: 'column', mt: 2 }}>
-            <img src={errorImageUrl} alt="Error" style={{ width: '600px', height: '600px', marginBottom: '15px' }} />
-            <Typography id="error-modal-description" align="center">
-              {errorMessage}
-            </Typography>
-          </Box>
-        </Box>
-      </Modal>
 
       {showInitialView && (
         <>
