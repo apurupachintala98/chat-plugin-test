@@ -70,167 +70,6 @@ function UserChat(props) {
     }, INACTIVITY_TIME);
   };
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!input.trim()) return;
-  //   if (!appCd.trim() || !requestId.trim()) {
-  //     setError('Please provide valid app_cd and request_id.');
-  //     return;
-  //   }
-  //   const newMessage = { role: 'user', content: input };
-  //   const newChatLog = [...chatLog, newMessage];
-  //   setChatLog(newChatLog);
-  //   setInput('');
-  //   setIsLoading(true);
-  //   setError('');
-  //   setShowInitialView(false);
-  //   setServerError(null);
-
-
-  //   try {
-  //     let botMessage;
-  //     const url = `${apiPath}?app_cd=${appCd}&request_id=${requestId}`;
-  //     const response = await fetch(url, {
-  //       method: 'PUT',
-  //       headers: { 'Content-Type': 'application/json' },
-  //       body: JSON.stringify([newMessage]),
-  //     });
-  //     if (!response.ok) {
-  //       if (response.status >= 500) {
-  //         throw new Error('Server is unavailable. Please try again later.');
-  //       } else {
-  //         throw new Error('Error communicating with the server.');
-  //       }
-  //     }
-  //     const data = await response.json();
-  //     setApiResponse(data);
-  //     const convertToString = (input) => {
-  //       if (typeof input === 'string') {
-  //         return input;
-  //       } else if (Array.isArray(input)) {
-  //         return input.map(convertToString).join(', ');
-  //       } else if (typeof input === 'object' && input !== null) {
-  //         return Object.entries(input)
-  //           .map(([key, value]) => `${key}: ${convertToString(value)}`)
-  //           .join(', ');
-  //       }
-  //       return String(input);
-  //     };
-
-  //     let modelReply = 'No valid reply found.';
-  //     if (typeof data.modelreply === 'object' && data.modelreply !== null) {
-  //       // If modelreply is an object, keep it as is for table rendering
-  //       botMessage = {
-  //         role: 'assistant',
-  //         content: data.modelreply, // Keep it as an object for table rendering
-  //         isTable: true,
-  //       };
-  //     } else {
-  //       // For non-object replies, use convertToString logic
-  //       let modelReply = 'No valid reply found.';
-  //       if (data.modelreply) {
-  //         modelReply = convertToString(data.modelreply); // Convert modelreply to string
-  //       }
-
-  //       botMessage = {
-  //         role: 'assistant',
-  //         content: modelReply, // Store the final reply as a string
-  //         isTable: false, // Indicate it's not a table
-  //       };
-  //     }
-  //     setChatLog([...newChatLog, botMessage]);
-  //   } catch (err) {
-  //     const errorMessage = {
-  //       role: 'assistant',
-  //       content: 'Unable to fetch data from the server  ...', // Error message
-  //   };
-  //   // Update the chat log with the error message
-  //   setChatLog([...newChatLog, errorMessage]); // Add error message to chat log
-  //   console.error(err);
-  //     console.error(err);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // Handle focus or input changes
-
-  // async function handleSubmit(e) {
-  //   e.preventDefault();
-
-  //   // Prevent empty messages
-  //   if (!input.trim()) return;
-  //   if (!appCd.trim() || !requestId.trim()) {
-  //     setError('Please provide valid app_cd and request_id.');
-  //     return;
-  //   }
-  //   const newMessage = {
-  //     role: 'user',
-  //     content: input,
-  //   };
-  //   const newChatLog = [...chatLog, newMessage]; // Add user's message to chat log
-  //   setChatLog(newChatLog);
-  //   setInput(''); // Clear the input field
-  //   setIsLoading(true); // Set loading state
-  //   setError(''); // Clear any previous error
-  //   setShowInitialView(false);
-  //   try {
-  //     // Dynamic API URL based on user inputs
-  //     const response = await fetch(
-  //       `http://localhost:8000/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
-  //       // `http://10.126.192.122:8001/get_llm_response/?app_cd=${appCd}&request_id=${requestId}`,
-
-  //       {
-  //         method: 'PUT',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify([newMessage]),
-  //       }
-  //     );
-  //     // Check if response is okay
-  //     if (!response.ok) {
-  //       throw new Error('Network response was not ok');
-  //     }
-  //     const data = await response.json();
-  //     // Convert final_response_flag to a string if it is a boolean true
-  //     if (data.final_response_flag === true) {
-  //       data.final_response_flag = "true"; // Change the boolean true to the string "true"
-  //     }
-  //     setApiResponse(data);
-
-  //     // Function to convert any object to a string
-  //     const convertToString = (input) => {
-  //       if (typeof input === 'string') {
-  //         return input; // Return string directly
-  //       } else if (Array.isArray(input)) {
-  //         // If it's an array, recursively convert each item
-  //         return input.map(convertToString).join(', ');
-  //       } else if (typeof input === 'object' && input !== null) {
-  //         // If it's an object, convert each key-value pair
-  //         return Object.entries(input)
-  //           .map(([key, value]) => `${key}: ${convertToString(value)}`)
-  //           .join(', ');
-  //       }
-  //       return String(input); // Fallback for other types (number, boolean, etc.)
-  //     };
-  //     let modelReply = 'No valid reply found.'; // Default message
-  //     if (data.modelreply) {
-  //       modelReply = convertToString(data.modelreply); // Convert modelreply to string
-  //     }
-  //     const botMessage = {
-  //       role: 'assistant',
-  //       content: modelReply,
-  //     };
-  //     setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
-  //   } catch (err) {
-  //     setError('Error communicating with backend');
-  //     console.error(err);
-  //   } finally {
-  //     setIsLoading(false); // Set loading state to false
-  //   }
-  // }
-
   async function handleSubmit(e) {
     e.preventDefault();
 
@@ -251,7 +90,7 @@ function UserChat(props) {
     setInput(''); // Clear the input field
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
-    setShowInitialView(false);    
+    setShowInitialView(false);
 
     try {
       // Dynamic API URL based on user inputs
@@ -287,7 +126,7 @@ function UserChat(props) {
         const botMessage = {
           role: 'assistant',
           content: (
-            <div style={{ display: 'flex', alignItems: 'center' , flexDirection: 'column'}}>
+            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
               <img src={imageUrl} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
               <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
             </div>
@@ -345,7 +184,7 @@ function UserChat(props) {
                   ))}
                 </tbody>
               </table>
-              {(rowCount > 1 || columnCount > 1) && (
+              {(rowCount > 1 && columnCount > 1) && (
                 <Button
                   variant="contained"
                   color="primary"
@@ -377,22 +216,22 @@ function UserChat(props) {
       // setError('Error communicating with backend');
       // console.error(err);
       // Catch network errors or other unexpected issues
-    let fallbackErrorMessage = 'An error occurred. Please try again later.';
-    const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
+      let fallbackErrorMessage = 'An error occurred. Please try again later.';
+      const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
 
-    const errorMessage = {
-      role: 'assistant',
-      content: (
-        <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-          <img src={fallbackErrorImage} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
-          <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
-        </div>
-      ),
-    };
-    
-    setChatLog([...newChatLog, errorMessage]); // Display fallback error message
-    setError('Error communicating with backend');
-    console.error('Error:', err);
+      const errorMessage = {
+        role: 'assistant',
+        content: (
+          <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
+            <img src={fallbackErrorImage} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} />
+            <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
+          </div>
+        ),
+      };
+
+      setChatLog([...newChatLog, errorMessage]); // Display fallback error message
+      setError('Error communicating with backend');
+      console.error('Error:', err);
     } finally {
       setIsLoading(false); // Set loading state to false
     }
