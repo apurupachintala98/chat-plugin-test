@@ -52,39 +52,49 @@ const Dashboard = ({
     <ThemeProvider theme={theme}>
       <Box sx={{ display: "flex", height: '100vh', flexDirection: 'column', overflow: 'hidden', ...customStyles.container }}>
         <CssBaseline />
-        <AppBar position="fixed" sx={{ zIndex: (theme) => theme.zIndex.drawer + 1,
-            backgroundColor: themeColor,
-            boxShadow: "-1px -4px 14px #000",
-            height: '64px', ...customStyles.appBar }}>
+        <AppBar position="fixed" sx={{
+          zIndex: (theme) => theme.zIndex.drawer + 1,
+          backgroundColor: themeColor,
+          boxShadow: "-1px -4px 14px #000",
+          height: '64px', ...customStyles.appBar
+        }}>
           <Toolbar sx={{ justifyContent: isMobile ? "space-between" : "flex-start" }}>
             {logo && <img src={logo} alt="Logo" style={{ width: 120, ...customStyles.logo }} />}
-            <Typography variant="h6" sx={{ flexGrow: 1,
-                textAlign: "center",
-                fontWeight: "bold",
-                fontSize: isMobile ? "1rem" : "1.5rem",
-                marginLeft: '-80px', ...customStyles.title }}>
+            <Typography variant="h6" sx={{
+              flexGrow: 1,
+              textAlign: "center",
+              fontWeight: "bold",
+              fontSize: isMobile ? "1rem" : "1.5rem",
+              marginLeft: '-80px', ...customStyles.title
+            }}>
               {title}
             </Typography>
           </Toolbar>
         </AppBar>
 
         {!isMobile && (
-          <Drawer variant="permanent" sx={{ width: drawerWidth, flexShrink: 0, [`& .MuiDrawer-paper`]: { width: drawerWidth,
-            boxSizing: "border-box",
-            backgroundColor: "#fff",
-            boxShadow: '-1px -3px 10px grey', ...customStyles.drawer } }}>
+          <Drawer variant="permanent" sx={{
+            width: drawerWidth, flexShrink: 0, [`& .MuiDrawer-paper`]: {
+              width: drawerWidth,
+              boxSizing: "border-box",
+              backgroundColor: "#fff",
+              boxShadow: '-1px -3px 10px grey', ...customStyles.drawer
+            }
+          }}>
             <Toolbar />
-            <Box sx={{ position: "relative", height: "100%", padding: 2, textAlign: 'center'}}>
+            <Box sx={{ position: "relative", height: "100%", padding: 2, textAlign: 'center' }}>
               <MuiButton
                 variant="contained"
                 size="large"
-                sx={{ position: "absolute",
+                sx={{
+                  position: "absolute",
                   bottom: 16,
                   width: "90%",
                   left: "50%",
                   transform: "translateX(-50%)",
                   fontWeight: "bold",
-                  backgroundColor: themeColor, ...customStyles.newChatButton }}
+                  backgroundColor: themeColor, ...customStyles.newChatButton
+                }}
                 onClick={handleNewChat}
               >
                 <HiOutlinePencilAlt />
@@ -94,38 +104,41 @@ const Dashboard = ({
           </Drawer>
         )}
 
-        <Box component="main" sx={{ flexGrow: 1,
-            bgcolor: "#fff",
-            p: 3,
-            height: "100vh",
-            overflow: "hidden",
-            paddingTop: '64px', ...customStyles.main }}>
+        <Box component="main" sx={{
+          flexGrow: 1,
+          bgcolor: "#fff",
+          p: 3,
+          height: "100vh",
+          overflow: "hidden",
+          paddingTop: '64px', ...customStyles.main
+        }}>
           <Toolbar />
 
           <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", width: '100%' }}>
-          <UserChat
-            chatLog={chatLog}
-            setChatLog={setChatLog}
-            responseReceived={responseReceived}
-            setResponseReceived={setResponseReceived}
-            error={error}
-            setError={setError}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-            successMessage={successMessage}
-            setSuccessMessage={setSuccessMessage}
-            showInitialView={showInitialView}
-            setShowInitialView={setShowInitialView}
-            themeColor={themeColor}
-            requestId={requestId}
-            setRequestId={setRequestId}
-            apiPath={apiPath}
-            appCd={appCd}
-            customStyles={customStyles.chat}
-            chatInitialMessage={chatInitialMessage}
-            chatbotImage={chatbotImage}
-            userImage={userImage}
-          />
+            <UserChat
+              chatLog={chatLog}
+              setChatLog={setChatLog}
+              responseReceived={responseReceived}
+              setResponseReceived={setResponseReceived}
+              error={error}
+              setError={setError}
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+              successMessage={successMessage}
+              setSuccessMessage={setSuccessMessage}
+              showInitialView={showInitialView}
+              setShowInitialView={setShowInitialView}
+              themeColor={themeColor}
+              requestId={requestId}
+              setRequestId={setRequestId}
+              apiPath={apiPath}
+              appCd={appCd}
+              customStyles={customStyles.chat}
+              chatInitialMessage={chatInitialMessage}
+              chatbotImage={chatbotImage}
+              userImage={userImage}
+              handleNewChat={handleNewChat}
+            />
           </Box>
         </Box>
       </Box>

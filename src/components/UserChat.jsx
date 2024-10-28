@@ -25,7 +25,7 @@ function UserChat(props) {
     isLoading, setIsLoading,
     successMessage, setSuccessMessage,
     showInitialView, setShowInitialView,
-    requestId, setRequestId, apiPath, appCd, customStyles = {}, chatbotImage, userImage
+    requestId, setRequestId, apiPath, appCd, customStyles = {}, chatbotImage, userImage, handleNewChat
   } = props;
 
   const endOfMessagesRef = useRef(null);
@@ -54,7 +54,6 @@ function UserChat(props) {
   const handleCloseErrorModal = () => {
     setOpenErrorModal(false); // Hide the modal
   };
-
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -436,8 +435,20 @@ function UserChat(props) {
             p: 4,
             textAlign: 'center',
           }}>
-            <Typography variant="h6">Session Ended</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>Session Ended</Typography>
             <Typography sx={{ mt: 2 }}>Your session has ended due to 10 minutes of inactivity.</Typography>
+            {/* New Chat Button */}
+            <Button
+              variant="contained"
+              color="primary"
+              onClick={() => {
+                setOpenPopup(false);  // Close modal
+                handleNewChat(); // Start new chat
+              }}
+              sx={{ mt: 2 }}
+            >
+              New Chat
+            </Button>
           </Box>
         </Fade>
       </Modal>
