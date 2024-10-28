@@ -50,6 +50,7 @@ const ChartModal = ({ visible, onClose, chartData = [] }) => {
         return {
           chart: { type: 'variablepie' },
           title: { text: titleText },
+          credits: { enabled: false },
           series: [{
             minPointSize: 10,
             innerSize: '20%',
@@ -67,6 +68,7 @@ const ChartModal = ({ visible, onClose, chartData = [] }) => {
         return {
           chart: { type: 'bubble', plotBorderWidth: 1, zoomType: 'xy' },
           title: { text: titleText },
+          credits: { enabled: false },
           xAxis: { title: { text: xAxisKey } },
           yAxis: { title: { text: yAxisKey } },
           series: [{
@@ -85,6 +87,7 @@ const ChartModal = ({ visible, onClose, chartData = [] }) => {
         return {
           chart: { type: chartType },
           title: { text: titleText },
+          credits: { enabled: false },
           xAxis: { categories: limitedData.map(item => item[xAxisKey]) },
           series: [{
             name: yAxisKey,
@@ -96,6 +99,7 @@ const ChartModal = ({ visible, onClose, chartData = [] }) => {
         return {
           chart: { type: 'line' },
           title: { text: titleText },
+          credits: { enabled: false },
           xAxis: { categories: limitedData.map(item => item[xAxisKey]) },
           series: [{
             name: yAxisKey,
