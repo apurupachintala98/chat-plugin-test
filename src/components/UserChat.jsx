@@ -43,6 +43,8 @@ function UserChat(props) {
   const [executeSQL, setExecuteSQL] = useState(false);
   const [sqlQuery, setSQLQuery] = useState(null);
   const [isSQLResponse, setIsSQLResponse] = useState(false);
+  const [data, setData] = useState('');
+
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -449,6 +451,7 @@ function UserChat(props) {
       }
 
       const data = await response.json();
+      setData(data);
 
       // Function to convert object to string
       const convertToString = (input) => {
@@ -673,7 +676,7 @@ function UserChat(props) {
       <ChartModal
         visible={isModalVisible}
         onClose={handleModalClose}
-        chartData={apiResponse?.modelreply || []}  // Ensure you pass valid JSON data
+        chartData={data || []}  // Ensure you pass valid JSON data
       />
       <Modal open={openPopup}
         onClose={(event, reason) => {
