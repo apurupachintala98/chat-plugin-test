@@ -600,7 +600,7 @@ function UserChat(props) {
         maxHeight: '73vh',
         padding: '10px', ...customStyles.chatContainer
       }}>
-        {apiResponse && (
+        {/* {apiResponse && (
         <>
           <FormControlLabel
             control={<Checkbox checked={showSQL} onChange={handleShowSQLChange} />}
@@ -611,12 +611,17 @@ function UserChat(props) {
             label="Execute SQL"
           />
         </>
-      )}
+      )} */}
         <ChatMessage chatLog={chatLog} chatbotImage={chatbotImage} userImage={userImage} />
         <div ref={endOfMessagesRef} />
         {isLoading && <HashLoader color={themeColor} size={30} aria-label="Loading Spinner" data-testid="loader" />}
         {/* {responseReceived && <Feedback />} */}
         {successMessage && <Alert color="success"><span>{successMessage}</span></Alert>}
+        {showButton && (
+              <Button variant="contained" color="primary" onClick={handleButtonClick}>
+                Execute SQL
+              </Button>
+            )}
       </Box>
 
       <Box sx={{
@@ -661,11 +666,7 @@ function UserChat(props) {
                 }}
               />
             </form>
-            {showButton && (
-              <Button variant="contained" color="primary" onClick={handleButtonClick}>
-                Execute SQL
-              </Button>
-            )}
+           
           </Grid>
         </Grid>
       </Box>
