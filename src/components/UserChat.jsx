@@ -10,6 +10,7 @@ import { format as sqlFormatter } from 'sql-formatter';
 import hljs from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
 
+
 hljs.registerLanguage('sql', sql);
 function UserChat(props) {
   const theme = useTheme();
@@ -66,149 +67,9 @@ function UserChat(props) {
     setOpenPopup(true); // Show the popup
   };
 
-  const handleShowSQLChange = (event) => {
-    setShowSQL(event.target.checked);
-  };
-
-  // Toggle SQL execution
-  const handleExecuteSQLChange = async (event) => {
-    const isChecked = event.target.checked;
-    setExecuteSQL(isChecked); // Update state to reflect checkbox status
-    
-    // If the checkbox is checked and there is a SQL query, execute the SQL
-    if (isChecked && sqlQuery) {
-      try {
-        const encodedResponse = encodeURIComponent(sqlQuery); // Encode the SQL query
-        const response = await fetch(`http://localhost:8000/run_sql_query/?exec_query=${encodedResponse}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-  
-        // Check if response is okay
-        if (!response.ok) {
-          let errorMessage = '';
-  
-          // Handle different status codes
-          if (response.status === 404) {
-            errorMessage = '404 - Not Found';
-          } else if (response.status === 500) {
-            errorMessage = '500 - Internal Server Error';
-          } else {
-            errorMessage = `${response.status} - ${response.statusText}`;
-          }
-  
-          // Create an error message object
-          const errorMessageContent = {
-            role: 'assistant',
-            content: (
-              <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-                <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
-              </div>
-            ),
-          };
-  
-          setChatLog((prevChatLog) => [...prevChatLog, errorMessageContent]); // Update chat log with assistant's error message
-          throw new Error(errorMessage); // Re-throw the error for logging purposes
-        }
-  
-        const data = await response.json();
-  
-        // Function to convert object to string
-        const convertToString = (input) => {
-          if (typeof input === 'string') {
-            return input;
-          } else if (Array.isArray(input)) {
-            return input.map(convertToString).join(', ');
-          } else if (typeof input === 'object' && input !== null) {
-            return Object.entries(input)
-              .map(([key, value]) => `${key}: ${convertToString(value)}`)
-              .join(', ');
-          }
-          return String(input);
-        };
-  
-        // Handle the response data similarly to handleSubmit
-        let modelReply = 'No valid reply found.'; // Default message
-        if (data) {
-          // Check if the response is a JSON array of objects
-          if (Array.isArray(data) && data.every(item => typeof item === 'object')) {
-            const columnCount = Object.keys(data[0]).length;
-            const rowCount = data.length;
-  
-            // Convert to a table-like format with borders for display
-            modelReply = (
-              <div style={{ display: 'flex', alignItems: 'start' }}>
-                <table style={{ borderCollapse: 'collapse', width: '100%' }}>
-                  <thead>
-                    <tr>
-                      {Object.keys(data[0]).map((key) => (
-                        <th key={key} style={{ border: '1px solid black', padding: '8px', textAlign: 'left' }}>{key}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {data.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {Object.values(row).map((val, colIndex) => (
-                          <td key={colIndex} style={{ border: '1px solid black', padding: '8px' }}>{convertToString(val)}</td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {(rowCount > 1 && columnCount > 1) && (
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    startIcon={<BarChartIcon />}
-                    sx={{ display: 'flex', alignItems: 'center', padding: '8px 16px', marginLeft: '15px', width: '190px', fontSize: '10px', fontWeight: 'bold' }}
-                    onClick={handleGraphClick}
-                  >
-                    Graph View
-                  </Button>
-                )}
-              </div>
-            );
-          } else if (typeof data === 'string') {
-            // If it's a string, display it as text and store it in the state
-            modelReply = data;
-            // setStoredResponse(data);
-            setIsLoading(true);
-          } else {
-            // Otherwise, convert to string
-            modelReply = convertToString(data);
-          }
-        }
-  
-        const botMessage = {
-          role: 'assistant',
-          content: modelReply,
-        };
-  
-        setChatLog((prevChatLog) => [...prevChatLog, botMessage]); // Update chat log with assistant's message
-      } catch (err) {
-        // Handle network errors or other unexpected issues
-        const fallbackErrorMessage = 'Error communicating with backend.';
-        const errorMessageContent = {
-          role: 'assistant',
-          content: (
-            <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-              <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
-            </div>
-          ),
-        };
-  
-        setChatLog((prevChatLog) => [...prevChatLog, errorMessageContent]); // Update chat log with assistant's error message
-        console.error('Error:', err); // Log the error for debugging
-      } finally {
-        setIsLoading(false); // Set loading state to false
-        setShowButton(false); // Hide button after execution
-      }
-    }
-  };
-
+  // const handleShowSQLChange = (event) => {
+  //   setShowSQL(event.target.checked);
+  // };
 
   // Start or reset the inactivity timer
   const resetInactivityTimeout = () => {
@@ -247,8 +108,9 @@ function UserChat(props) {
 
     try {
       // Dynamic API URL based on user inputs
+      const url = `${apiPath}?app_cd=${appCd}&request_id=${requestId}`;
       const response = await fetch(
-        `http://localhost:8000/get_llm_response/?app_cd=Chat_bot&request_id=8000`,
+        url,
         {
           method: 'PUT',
           headers: {
@@ -261,18 +123,14 @@ function UserChat(props) {
       // Check if response is okay
       if (!response.ok) {
         let errorMessage = '';
-        let imageUrl = '';
 
         // Handle different status codes
         if (response.status === 404) {
           errorMessage = '404 - Not Found';
-          // imageUrl = pageNotFoundImage;
         } else if (response.status === 500) {
           errorMessage = '500 - Internal Server Error';
-          // imageUrl = internalErrorImage;
         } else {
           errorMessage = `${response.status} - ${response.statusText}`;
-          // imageUrl = genericErrorImage;
         }
 
         // // Display the image and error message
@@ -280,7 +138,6 @@ function UserChat(props) {
           role: 'assistant',
           content: (
             <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-              {/* <img src={imageUrl} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} /> */}
               <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{errorMessage}</p>
             </div>
           ),
@@ -371,23 +228,13 @@ function UserChat(props) {
         isSQLResponse, // Attach this flag to the bot message
       };
 
-      // const botMessage = {
-      //   role: 'assistant',
-      //   content: modelReply,
-      // };
-
       setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
     } catch (err) {
-      // setError('Error communicating with backend');
-      // console.error(err);
-      // Catch network errors or other unexpected issues
       let fallbackErrorMessage = 'Error communicating with backend.';
-      // const fallbackErrorImage = genericErrorImage;  // Default to a generic error image
       const errorMessage = {
         role: 'assistant',
         content: (
           <div style={{ display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-            {/* <img src={fallbackErrorImage} alt="error" style={{ width: '500px', height: '500px', marginBottom: '10px' }} /> */}
             <p style={{ fontSize: '18px', fontWeight: 'bold', textAlign: 'center' }}>{fallbackErrorMessage}</p>
           </div>
         ),
@@ -398,6 +245,7 @@ function UserChat(props) {
       console.error('Error:', err);
     } finally {
       setIsLoading(false); // Set loading state to false
+      setShowSQL(false);
     }
   }
 
@@ -416,7 +264,8 @@ function UserChat(props) {
   const handleButtonClick = async () => {
     try {
       const encodedResponse = encodeURIComponent(storedResponse); // Encode the storedResponse
-      const response = await fetch(`http://localhost:8000/run_sql_query/?exec_query=${encodedResponse}`, {
+      const sqlUrl = `${sqlUrl}?exec_query=${encodedResponse}`;
+      const response = await fetch(sqlUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -542,7 +391,6 @@ function UserChat(props) {
       console.error('Error:', err); // Log the error for debugging
     } finally {
       setIsLoading(false);// Set loading state to false
-      setShowButton(false);
     }
   };
 
@@ -616,15 +464,16 @@ function UserChat(props) {
         </>
       )} */}
         <ChatMessage chatLog={chatLog} chatbotImage={chatbotImage} userImage={userImage} />
+        {showButton && (
+          <FormControlLabel
+            control={<Checkbox checked={executeSQL} onChange={handleButtonClick} />}
+            label="Execute SQL"
+          />
+        )}
         <div ref={endOfMessagesRef} />
         {isLoading && <HashLoader color={themeColor} size={30} aria-label="Loading Spinner" data-testid="loader" />}
         {/* {responseReceived && <Feedback />} */}
         {successMessage && <Alert color="success"><span>{successMessage}</span></Alert>}
-        {showButton && (
-              <Button variant="contained" color="primary" onClick={handleButtonClick}>
-                Execute SQL
-              </Button>
-            )}
       </Box>
 
       <Box sx={{
@@ -669,7 +518,7 @@ function UserChat(props) {
                 }}
               />
             </form>
-           
+
           </Grid>
         </Grid>
       </Box>

@@ -13,6 +13,7 @@ function App() {
     title="Chat Assistant"
     newChatButtonLabel="New Chat"
     apiPath="http://10.126.192.122:8001/get_llm_response"
+    sqlUrl="http://localhost:8000/run_sql_query/"
     appCd="Chat_bot"
     chatbotImage={chatbot}
     userImage={user}
