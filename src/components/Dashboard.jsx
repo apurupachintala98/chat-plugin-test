@@ -14,6 +14,7 @@ const Dashboard = ({
   newChatButtonLabel = "New Chat",
   onNewChat,
   apiPath,
+  sqlUrl,
   appCd,
   chatInitialMessage = "Hello there, I am your Chat Assistant. How can I help you today?",
   customStyles = {},
@@ -138,6 +139,7 @@ const Dashboard = ({
               chatbotImage={chatbotImage}
               userImage={userImage}
               handleNewChat={handleNewChat}
+              sqlUrl={sqlUrl}
             />
           </Box>
         </Box>

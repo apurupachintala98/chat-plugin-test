@@ -26,7 +26,7 @@ function UserChat(props) {
     isLoading, setIsLoading,
     successMessage, setSuccessMessage,
     showInitialView, setShowInitialView,
-    requestId, setRequestId, apiPath, appCd, customStyles = {}, chatbotImage, userImage, handleNewChat
+    requestId, setRequestId, apiPath, sqlUrl, appCd, customStyles = {}, chatbotImage, userImage, handleNewChat
   } = props;
 
   const endOfMessagesRef = useRef(null);
@@ -40,11 +40,9 @@ function UserChat(props) {
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [storedResponse, setStoredResponse] = useState(''); // New state to store the response
   const [showButton, setShowButton] = useState(false); // New state to show/hide the button
-  const [showSQL, setShowSQL] = useState(false); // State for toggling SQL visibility
-  const [executeSQL, setExecuteSQL] = useState(false);
-  const [sqlQuery, setSQLQuery] = useState(null);
-  const [isSQLResponse, setIsSQLResponse] = useState(false);
+  const [showResponse, setShowResponse] = useState(false);
   const [data, setData] = useState('');
+  const [showExecuteButton, setShowExecuteButton] = useState(false); 
 
 
   useLayoutEffect(() => {
@@ -103,8 +101,9 @@ function UserChat(props) {
     setIsLoading(true); // Set loading state
     setError(''); // Clear any previous error
     setShowInitialView(false);
-
-
+    setShowResponse(false);
+    setShowButton(false);
+    setShowExecuteButton(false);
 
     try {
       // Dynamic API URL based on user inputs
@@ -167,6 +166,7 @@ function UserChat(props) {
       };
 
       // Determine how to handle the response
+      let isSQLResponse = false;
       let modelReply = 'No valid reply found.'; // Default message
       if (data.modelreply) {
         // Check if the response is a JSON array of objects
@@ -207,28 +207,38 @@ function UserChat(props) {
               )}
             </div>
           );
+          const botMessage = { role: 'assistant', content: modelReply };
+          setChatLog([...newChatLog, botMessage]);
         } else if (typeof data.modelreply === 'string') {
+          isSQLResponse = data.modelreply.toLowerCase().includes('select');
           // If it's a string, display it as text and store it in the state
-          if (data.modelreply.toLowerCase().includes('select')) {
+          if (isSQLResponse) {
             modelReply = sqlFormatter(data.modelreply); // Format the SQL query
+            setStoredResponse(modelReply);
+            setShowButton(true); // Show "Show SQL" button
+            setShowExecuteButton(true); // Show "Execute SQL" button
           } else {
             modelReply = data.modelreply;
+            const botMessage = { role: 'assistant', content: modelReply, isSQLResponse };
+            setChatLog([...newChatLog, botMessage]); 
           }
-          setStoredResponse(data.modelreply);
-          setShowButton(true);
+  
+         // Add message to chat log
         } else {
           // Otherwise, convert to string
           modelReply = convertToString(data.modelreply);
+          const botMessage = { role: 'assistant', content: modelReply, isSQLResponse, };
+          setChatLog([...newChatLog, botMessage]);
         }
       }
-      const isSQLResponse = data.modelreply.toLowerCase().includes('select');
-      const botMessage = {
-        role: 'assistant',
-        content: modelReply,
-        isSQLResponse, // Attach this flag to the bot message
-      };
+      // const isSQLResponse = data.modelreply.toLowerCase().includes('select');
+      // const botMessage = {
+      //   role: 'assistant',
+      //   content: modelReply,
+      //   isSQLResponse, // Attach this flag to the bot message
+      // };
 
-      setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
+      // setChatLog([...newChatLog, botMessage]); // Update chat log with assistant's message
     } catch (err) {
       let fallbackErrorMessage = 'Error communicating with backend.';
       const errorMessage = {
@@ -245,7 +255,6 @@ function UserChat(props) {
       console.error('Error:', err);
     } finally {
       setIsLoading(false); // Set loading state to false
-      setShowSQL(false);
     }
   }
 
@@ -263,9 +272,9 @@ function UserChat(props) {
 
   const handleButtonClick = async () => {
     try {
-      const encodedResponse = encodeURIComponent(storedResponse); // Encode the storedResponse
-      const sqlUrl = `${sqlUrl}?exec_query=${encodedResponse}`;
-      const response = await fetch(sqlUrl, {
+        const encodedResponse = encodeURIComponent(storedResponse); // Encode the storedResponse
+      const sqlQueryUrl = `${sqlUrl}?exec_query=${encodedResponse}`;
+      const response = await fetch(sqlQueryUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -394,6 +403,21 @@ function UserChat(props) {
     }
   };
 
+  // function handleShowResponse() {
+  //   setShowResponse(true); // Show the stored response when button is clicked
+  // }
+
+  // function handleShowResponse() {
+  //   setShowResponse((prev) => {
+  //     setShowExecuteButton(!prev); // Show "Execute SQL" when "Show SQL" is visible
+  //     return !prev; // Toggle SQL response visibility
+  //   });
+  // }
+
+  function handleShowResponse() {
+    setShowResponse((prev) => !prev); // Toggle SQL response visibility
+  }
+
   return (
 
     <Box sx={{
@@ -463,13 +487,19 @@ function UserChat(props) {
           />
         </>
       )} */}
-        <ChatMessage chatLog={chatLog} chatbotImage={chatbotImage} userImage={userImage} />
+     
         {showButton && (
-          <FormControlLabel
-            control={<Checkbox checked={executeSQL} onChange={handleButtonClick} />}
-            label="Execute SQL"
-          />
-        )}
+          <Button variant="contained" color="primary" onClick={handleShowResponse} sx={{mr: 2}}>
+             {showResponse ? "Hide SQL" : "Show SQL"}
+          </Button>
+         )}
+         {showExecuteButton && ( 
+          <Button variant="contained" color="primary" onClick={handleButtonClick}>
+              Execute SQL
+            </Button>
+            )}
+           <ChatMessage chatLog={chatLog} chatbotImage={chatbotImage} userImage={userImage} showResponse={showResponse} 
+      storedResponse={storedResponse} />
         <div ref={endOfMessagesRef} />
         {isLoading && <HashLoader color={themeColor} size={30} aria-label="Loading Spinner" data-testid="loader" />}
         {/* {responseReceived && <Feedback />} */}
