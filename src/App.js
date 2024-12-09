@@ -12,8 +12,8 @@ function App() {
     themeColor="#1a3673"
     title="Chat Assistant"
     newChatButtonLabel="New Chat"
-    apiPath="http://localhost:8001/get_llm_response/"
-    sqlUrl="http://localhost:8001/run_sql_query/"
+    apiPath="http://localhost:8000/get_llm_response/"
+    sqlUrl="http://localhost:8000/run_sql_query/"
     appCd="Chat_bot"
     chatbotImage={chatbot}
     userImage={user}

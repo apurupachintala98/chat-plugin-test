@@ -111,32 +111,20 @@ const ChatMessage = ({ chatLog, chatbotImage, userImage, showResponse, storedRes
               ) : (
                 <Avatar src={userImage || user} alt="User" sx={{ borderRadius: '50%', width: 32, height: 32 }} />
               )}
-              <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 'bold' }}>
+              <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 'bold', ml: 1 }}>
                 {chat.isSQLResponse ? (
                   <pre><code className="sql">{chat.content}</code></pre>
                 ) : (
                   chat.content
                 )}
               </Typography>
+
             </Box>
           </Paper>
         </Box>
       ))}
-
-      {/* Conditionally render the stored SQL response as an assistant message */}
-      {showResponse && storedResponse && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '10px' }}>
-          <Paper elevation={2} sx={{ backgroundColor: '#fff', padding: '12px', borderRadius: '15px', maxWidth: '80%', width: 'fit-content', boxShadow: '0px 0px 7px #898080', color: '#1a3673' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar src={chatbotImage || chatbot} alt="Chatbot" sx={{ mr: 2, width: 32, height: 32 }} />
-              <Typography variant="body2" sx={{ fontSize: 14, fontWeight: 'bold' }}>
-                <pre><code className="sql">{storedResponse}</code></pre>
-              </Typography>
-            </Box>
-          </Paper>
-        </Box>
-      )}
     </Box>
+
   );
 };
 
