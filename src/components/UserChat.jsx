@@ -41,6 +41,7 @@ function UserChat(props) {
   const [storedResponse, setStoredResponse] = useState(''); // New state to store the response
   const [showResponse, setShowResponse] = useState(false);
   const [data, setData] = useState('');
+  const [rawResponse, setRawResponse] = useState('');
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -282,8 +283,10 @@ function UserChat(props) {
               {parts}
             </div>
           );
-
-          setStoredResponse(modelReply);
+          const raw =  data.modelreply;
+          setRawResponse(raw);
+          setStoredResponse(modelReply)
+          // setStoredResponse(modelReply);
           setShowButton(true); // Show "Show SQL" button
           setShowExecuteButton(true); // Show "Execute SQL" button
         } else {
@@ -326,29 +329,21 @@ function UserChat(props) {
 
   const handleButtonClick = async () => {
     try {
-      const sanitizeQuery = (query) => {
-        if (typeof query !== 'string') {
-          console.error('sanitizeQuery: Input is not a string.');
-          return '';
+
+      const cleanAndSanitizeResponse = (response) => {
+        if (typeof response !== 'string') {
+          response = JSON.stringify(response); // Ensure response is a string
         }
-        let cleanedQuery = query
-          .replace(/\n/g, ' ')
-          .replace(/\s\s+/g, ' ')
-          .replace(/WITH __prov AS \(.+?\),/g, '')
-          .trim();
-
-        return cleanedQuery;
-      };
-      const decodedStoredResponse = decodeURIComponent(storedResponse);
-      if (typeof decodedStoredResponse !== 'string') {
-        console.error('decodedStoredResponse is not a string');
+        let cleanedResponse = response
+          .replace(/\\n/g, ' ') // Replace line breaks with spaces
+          .replace(/\s+/g, ' ') // Collapse multiple spaces into a single space
+          .replace(/--.*?;/g, '') // Remove SQL comments starting with --
+          .trim(); // Trim leading and trailing spaces
+        return encodeURIComponent(cleanedResponse); // Encode for URL safety
       }
-      const sanitizedQuery = sanitizeQuery(decodedStoredResponse);
-      const encodedResponse = encodeURIComponent(sanitizedQuery);
-
-      // const decodedStoredResponse = decodeURIComponent(storedResponse);
-      // const encodedResponse = sanitizeQuery(decodedStoredResponse); // Encode the storedResponse
-      const sqlQueryUrl = `${sqlUrl}?app_cd=${appCd}&request_id=${requestId}&exec_query=${encodedResponse}`;
+      const sanitizedResponse = cleanAndSanitizeResponse(rawResponse);
+      const encodeResponse = JSON.stringify(sanitizedResponse)
+      const sqlQueryUrl = `${sqlUrl}?app_cd=${appCd}&request_id=${requestId}&exec_query=${encodeResponse}`;
       const response = await fetch(sqlQueryUrl, {
         method: 'POST',
         headers: {
