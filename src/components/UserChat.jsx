@@ -240,13 +240,44 @@ function UserChat(props) {
         }
 
         // Add any remaining text after the last SQL block
+        // if (lastIndex < data.modelreply.length) {
+        //   parts.push(
+        //     <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+        //       {data.modelreply.slice(lastIndex).trim()}
+        //     </p>
+        //   );
+        // }
+
         if (lastIndex < data.modelreply.length) {
-          parts.push(
-            <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
-              {data.modelreply.slice(lastIndex).trim()}
-            </p>
-          );
+          const remainingContent = data.modelreply.slice(lastIndex).trim();
+          if (/SELECT|WHERE|FROM/i.test(remainingContent)) {
+            // Treat remaining content as SQL
+            try {
+              parts.push(
+                <pre key={`sql-remaining`} style={{ margin: '8px 0' }}>
+                  <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {sqlFormatter(remainingContent)}
+                  </code>
+                </pre>
+              );
+            } catch (err) {
+              console.error("SQL Formatting Error:", err);
+              parts.push(
+                <pre key={`sql-remaining`} style={{ margin: '8px 0', color: 'red' }}>
+                  {remainingContent}
+                </pre>
+              );
+            }
+          } else {
+            // Add remaining text as-is
+            parts.push(
+              <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+                {remainingContent}
+              </p>
+            );
+          }
         }
+      
 
         modelReply = (
           <div style={{ overflow: "auto", maxWidth: "100%", padding: "10px" }}>
