@@ -238,8 +238,6 @@ function UserChat(props) {
 
           lastIndex = sqlRegex.lastIndex;
         }
-
-        // Add any remaining text after the last SQL block
         // if (lastIndex < data.modelreply.length) {
         //   parts.push(
         //     <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
@@ -328,19 +326,20 @@ function UserChat(props) {
 
   const handleButtonClick = async () => {
     try {
-      const sanitizeQuery = (query) => {
-        // Example: Remove line breaks, extra spaces, and other unnecessary parts
-        let cleanedQuery = query
-          .replace(/\n/g, ' ') // Replace newlines with spaces
-          .replace(/\s\s+/g, ' ') // Replace multiple spaces with a single space
-          .replace(/WITH __prov AS \(.+?\),/g, '') // Remove unwanted WITH clause (specific part of the query)
-          .trim(); // Remove leading and trailing spaces
+      // const sanitizeQuery = (query) => {
+      //   Example: Remove line breaks, extra spaces, and other unnecessary parts
+      //   let cleanedQuery = query
+      //     .replace(/\n/g, ' ') // Replace newlines with spaces
+      //     .replace(/\s\s+/g, ' ') // Replace multiple spaces with a single space
+      //     .replace(/WITH __prov AS \(.+?\),/g, '') // Remove unwanted WITH clause (specific part of the query)
+      //     .trim(); // Remove leading and trailing spaces
 
-        // You can add more rules here to remove other unnecessary parts
-        return cleanedQuery;
-      };
+      //   // You can add more rules here to remove other unnecessary parts
+      //   return cleanedQuery;
+      // };
       const decodedStoredResponse = decodeURIComponent(storedResponse);
-      const encodedResponse = sanitizeQuery(decodedStoredResponse); // Encode the storedResponse
+      // const encodedResponse = sanitizeQuery(decodedStoredResponse); // Encode the storedResponse
+      const encodedResponse = decodedStoredResponse; // Encode the storedResponse
       const sqlQueryUrl = `${sqlUrl}?app_cd=${appCd}&request_id=${requestId}&exec_query=${encodedResponse}`;
       const response = await fetch(sqlQueryUrl, {
         method: 'POST',
