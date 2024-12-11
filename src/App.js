@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import './App.css';
 import Dashboard from '../src/components/Dashboard';
 import logo from '../src/images/logo.png';
@@ -5,6 +6,11 @@ import user from '../src/images/user.png';
 import chatbot from '../src/images/chatbot.png';
 
 function App() {
+  const [suggestedPrompts, setSuggestedPrompts] = useState([
+    "Show total membership by lob for incurred month 202409",
+    "Find total procedure count by HCC for incurred period 202409?",
+    "For commercial market, Show Paid expense PMPM by mbu for incurred period 202409"
+  ]);
   return (
     <div >
     <Dashboard
@@ -18,6 +24,7 @@ function App() {
     chatbotImage={chatbot}
     userImage={user}
     chatInitialMessage= "Hello there, I am your Chat Assistant. How can I help you today?" 
+    suggestedPrompts={suggestedPrompts}
     customStyles={{
       container: {}, // Customize the container background
         appBar: {},             // Remove AppBar shadow

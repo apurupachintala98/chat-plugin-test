@@ -19,6 +19,7 @@ const Dashboard = ({
   chatInitialMessage = "Hello there, I am your Chat Assistant. How can I help you today?",
   customStyles = {},
   chatbotImage,
+  suggestedPrompts,
   userImage
 }) => {
   const isMobile = useMediaQuery("(max-width:950px)");
@@ -29,6 +30,8 @@ const Dashboard = ({
   const [successMessage, setSuccessMessage] = useState('');
   const [showInitialView, setShowInitialView] = useState(true);
   const [requestId, setRequestId] = useState(uuidv4());
+  const [showExecuteButton, setShowExecuteButton] = useState(false);
+  const [showButton, setShowButton] = useState(false); // New state to show/hide the button
 
   const handleNewChat = () => {
     setChatLog([]);
@@ -39,6 +42,8 @@ const Dashboard = ({
     setShowInitialView(true);
     setRequestId(uuidv4());
     onNewChat?.(uuidv4());
+    setShowExecuteButton(false);
+    setShowButton(false);
   };
 
   const theme = createTheme({
@@ -140,6 +145,11 @@ const Dashboard = ({
               userImage={userImage}
               handleNewChat={handleNewChat}
               sqlUrl={sqlUrl}
+              suggestedPrompts={suggestedPrompts}
+              showExecuteButton={showExecuteButton}
+              setShowExecuteButton={setShowExecuteButton}
+              showButton={showButton}
+              setShowButton={setShowButton}
             />
           </Box>
         </Box>

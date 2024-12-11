@@ -9,7 +9,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import { format as sqlFormatter } from 'sql-formatter';
 import hljs from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
-
+import SuggestedPrompts from '../components/SuggestedPrompts';
 
 hljs.registerLanguage('sql', sql);
 function UserChat(props) {
@@ -26,7 +26,7 @@ function UserChat(props) {
     isLoading, setIsLoading,
     successMessage, setSuccessMessage,
     showInitialView, setShowInitialView,
-    requestId, setRequestId, apiPath, sqlUrl, appCd, customStyles = {}, chatbotImage, userImage, handleNewChat
+    requestId, setRequestId, apiPath, sqlUrl, appCd, customStyles = {}, chatbotImage, userImage, handleNewChat, suggestedPrompts, showButton, setShowButton, showExecuteButton, setShowExecuteButton
   } = props;
 
   const endOfMessagesRef = useRef(null);
@@ -39,11 +39,8 @@ function UserChat(props) {
   const INACTIVITY_TIME = 10 * 60 * 1000;
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [storedResponse, setStoredResponse] = useState(''); // New state to store the response
-  const [showButton, setShowButton] = useState(false); // New state to show/hide the button
   const [showResponse, setShowResponse] = useState(false);
   const [data, setData] = useState('');
-  const [showExecuteButton, setShowExecuteButton] = useState(false);
-
 
   useLayoutEffect(() => {
     if (endOfMessagesRef.current) {
@@ -203,47 +200,63 @@ function UserChat(props) {
               )}
             </div>
           );
-          const botMessage = { role: 'assistant', content: modelReply };
-          setChatLog([...newChatLog, botMessage]);
         } else if (typeof data.modelreply === 'string') {
-          const sqlKeywords = ["SELECT", "INSERT", "UPDATE", "DELETE", "FROM", "WHERE"];
-          isSQLResponse = sqlKeywords.some((keyword) =>
-            data.modelreply.toUpperCase().includes(keyword)
-          );
-          if (isSQLResponse) {
-            const parts = data.modelreply.split(/(?=SELECT|INSERT|UPDATE|DELETE|FROM|WHERE)/gi);
-            const formattedResponse = parts.map((part, index) => {
-              const isSQLPart = sqlKeywords.some((keyword) =>
-                part.toUpperCase().includes(keyword)
-              );
-              if (isSQLPart) {
-                try {
-                  return (
-                    <pre key={index} style={{ margin: 0 }}>
-                      <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word'}}>{sqlFormatter(part)}</code>
-                    </pre>
-                  );
-                } catch (err) {
-                  console.error("SQL Formatting Error:", err);
-                  return part;
-                }
-              }
-              return <p key={index} style={{ margin: "8px 0" }}>{part}</p>;
-            });
+          const sqlRegex = /```sql([\s\S]*?)```/g;
+        const parts = [];
+        let lastIndex = 0;
+        let match;
 
-            modelReply = (
-              <div style={{ overflow: 'auto', maxWidth: '100%', padding: '10px' }}>
-                {formattedResponse}
-              </div>
+        // Split the response into SQL and text
+        while ((match = sqlRegex.exec(data.modelreply)) !== null) {
+          // Add the text before the SQL block
+          if (match.index > lastIndex) {
+            parts.push(
+              <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+                {data.modelreply.slice(lastIndex, match.index).trim()}
+              </p>
             );
-            setStoredResponse(modelReply);
-            setShowButton(true); // Show "Show SQL" button
-            setShowExecuteButton(true); // Show "Execute SQL" button
-          } else {
-            modelReply = data.modelreply;
-            const botMessage = { role: 'assistant', content: modelReply, isSQLResponse };
-            setChatLog([...newChatLog, botMessage]);
           }
+
+          // Format the SQL block
+          const sqlContent = match[1].trim();
+          try {
+            parts.push(
+              <pre key={`sql-${match.index}`} style={{ margin: '8px 0' }}>
+                <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                  {sqlFormatter(sqlContent)}
+                </code>
+              </pre>
+            );
+          } catch (err) {
+            console.error("SQL Formatting Error:", err);
+            parts.push(
+              <pre key={`sql-${match.index}`} style={{ margin: '8px 0', color: 'red' }}>
+              {sqlContent}
+            </pre>
+            );
+          }
+
+          lastIndex = sqlRegex.lastIndex;
+        }
+
+        // Add any remaining text after the last SQL block
+        if (lastIndex < data.modelreply.length) {
+          parts.push(
+            <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+              {data.modelreply.slice(lastIndex).trim()}
+            </p>
+          );
+        }
+
+        modelReply = (
+          <div style={{ overflow: "auto", maxWidth: "100%", padding: "10px" }}>
+            {parts}
+          </div>
+        );
+
+        setStoredResponse(modelReply);
+        setShowButton(true); // Show "Show SQL" button
+        setShowExecuteButton(true); // Show "Execute SQL" button
         } else {
           // Otherwise, convert to string
           modelReply = convertToString(data.modelreply);
@@ -429,53 +442,30 @@ function UserChat(props) {
     }
   };
 
-  function handleShowResponse() {
+function handleShowResponse() {
     setShowResponse((prev) => {
-      const newVisibility = !prev; // Toggle SQL response visibility
-
+      const newVisibility = !prev; // Toggle SQL response visibilit
       if (newVisibility) {
-        // Format the stored SQL response
-        let formattedSQL = storedResponse;
-        try {
-          formattedSQL = sqlFormatter(storedResponse); // Format SQL using sql-formatter
-        } catch (error) {
-          console.error("SQL Formatting Error:", error);
-        }
-
-        // Create a new bot message if the response is being shown
         const botMessage = {
-          role: "assistant",
-          content: (
-            <pre>
-              <code className="sql">{formattedSQL}</code>
-            </pre>
-          ),
-          isSQLResponse: true,
+          role: 'assistant',
+          content: storedResponse,
         };
 
-        // Update the chat log with the new bot message
         setChatLog((prevChatLog) => [...prevChatLog, botMessage]);
-
-        // Highlight the newly added code block
-        setTimeout(() => {
-          document.querySelectorAll("code.sql").forEach((block) => {
-            hljs.highlightElement(block);
-          });
-        }, 0);
       } else {
-        // Remove the last bot message when hiding the response
         setChatLog((prevChatLog) => {
-          if (prevChatLog.length > 0 && prevChatLog[prevChatLog.length - 1].isSQLResponse) {
+          if (prevChatLog.length > 0 && prevChatLog[prevChatLog.length - 1].role === 'assistant') {
             return prevChatLog.slice(0, prevChatLog.length - 1);
           }
-          return prevChatLog; // No changes if the last message isn't the SQL response
+          return prevChatLog;
         });
       }
 
-      return newVisibility; // Return the new visibility state
+      return newVisibility; 
     });
   }
 
+  
   return (
 
     <Box sx={{
@@ -537,9 +527,9 @@ function UserChat(props) {
         />
         <div ref={endOfMessagesRef} />
         {showButton && (
-          <Button variant="contained" color="primary" onClick={handleShowResponse} sx={{ mr: 2 }}>
+          <><Typography>Please see the details below</Typography><Button variant="contained" color="primary" onClick={handleShowResponse} sx={{ mr: 2 }}>
             {showResponse ? "Hide SQL" : "Show SQL"}
-          </Button>
+          </Button></>
         )}
         {showExecuteButton && (
           <Button variant="contained" color="primary" onClick={handleButtonClick}>
@@ -559,6 +549,21 @@ function UserChat(props) {
         flexDirection: 'column', ...customStyles.inputContainer
       }}>
         <Grid container spacing={2} sx={{ width: '100%', maxWidth: '100%', position: 'fixed', bottom: '50px', left: '67%', transform: 'translateX(-50%)', width: '70%', marginLeft: '8px', flexDirection: 'column' }}>
+        {showInitialView && (
+            <Grid item xs={12} sm={6}>
+              <SuggestedPrompts
+                prompts={suggestedPrompts}
+                sx={{
+                  mb: isSmallScreen || isMediumScreen ? '32px' : '24px', 
+                  textAlign: 'center',
+                  width: '100%',
+                  maxWidth: '600px',
+                  marginLeft: 'auto',
+                  marginRight: 'auto',
+                }}
+              />
+            </Grid>
+          )}
           <Grid item xs={12} sm={6}>
             <form onSubmit={handleSubmit} style={{ width: '100%', backgroundColor: '#fff', boxShadow: '0px -2px 5px rgba(0, 0, 0, 0.1)', ...customStyles.form }}>
               <TextField
