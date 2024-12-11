@@ -202,90 +202,90 @@ function UserChat(props) {
           );
         } else if (typeof data.modelreply === 'string') {
           const sqlRegex = /```sql([\s\S]*?)```/g;
-        const parts = [];
-        let lastIndex = 0;
-        let match;
+          const parts = [];
+          let lastIndex = 0;
+          let match;
 
-        // Split the response into SQL and text
-        while ((match = sqlRegex.exec(data.modelreply)) !== null) {
-          // Add the text before the SQL block
-          if (match.index > lastIndex) {
-            parts.push(
-              <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
-                {data.modelreply.slice(lastIndex, match.index).trim()}
-              </p>
-            );
-          }
+          // Split the response into SQL and text
+          while ((match = sqlRegex.exec(data.modelreply)) !== null) {
+            // Add the text before the SQL block
+            if (match.index > lastIndex) {
+              parts.push(
+                <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+                  {data.modelreply.slice(lastIndex, match.index).trim()}
+                </p>
+              );
+            }
 
-          // Format the SQL block
-          const sqlContent = match[1].trim();
-          try {
-            parts.push(
-              <pre key={`sql-${match.index}`} style={{ margin: '8px 0' }}>
-                <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                  {sqlFormatter(sqlContent)}
-                </code>
-              </pre>
-            );
-          } catch (err) {
-            console.error("SQL Formatting Error:", err);
-            parts.push(
-              <pre key={`sql-${match.index}`} style={{ margin: '8px 0', color: 'red' }}>
-              {sqlContent}
-            </pre>
-            );
-          }
-
-          lastIndex = sqlRegex.lastIndex;
-        }
-        // if (lastIndex < data.modelreply.length) {
-        //   parts.push(
-        //     <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
-        //       {data.modelreply.slice(lastIndex).trim()}
-        //     </p>
-        //   );
-        // }
-
-        if (lastIndex < data.modelreply.length) {
-          const remainingContent = data.modelreply.slice(lastIndex).trim();
-          if (/SELECT|WHERE|FROM/i.test(remainingContent)) {
-            // Treat remaining content as SQL
+            // Format the SQL block
+            const sqlContent = match[1].trim();
             try {
               parts.push(
-                <pre key={`sql-remaining`} style={{ margin: '8px 0' }}>
+                <pre key={`sql-${match.index}`} style={{ margin: '8px 0' }}>
                   <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-                    {sqlFormatter(remainingContent)}
+                    {sqlFormatter(sqlContent)}
                   </code>
                 </pre>
               );
             } catch (err) {
               console.error("SQL Formatting Error:", err);
               parts.push(
-                <pre key={`sql-remaining`} style={{ margin: '8px 0', color: 'red' }}>
-                  {remainingContent}
+                <pre key={`sql-${match.index}`} style={{ margin: '8px 0', color: 'red' }}>
+                  {sqlContent}
                 </pre>
               );
             }
-          } else {
-            // Add remaining text as-is
-            parts.push(
-              <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
-                {remainingContent}
-              </p>
-            );
+
+            lastIndex = sqlRegex.lastIndex;
           }
-        }
-      
+          // if (lastIndex < data.modelreply.length) {
+          //   parts.push(
+          //     <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+          //       {data.modelreply.slice(lastIndex).trim()}
+          //     </p>
+          //   );
+          // }
 
-        modelReply = (
-          <div style={{ overflow: "auto", maxWidth: "100%", padding: "10px" }}>
-            {parts}
-          </div>
-        );
+          if (lastIndex < data.modelreply.length) {
+            const remainingContent = data.modelreply.slice(lastIndex).trim();
+            if (/SELECT|WHERE|FROM/i.test(remainingContent)) {
+              // Treat remaining content as SQL
+              try {
+                parts.push(
+                  <pre key={`sql-remaining`} style={{ margin: '8px 0' }}>
+                    <code style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                      {sqlFormatter(remainingContent)}
+                    </code>
+                  </pre>
+                );
+              } catch (err) {
+                console.error("SQL Formatting Error:", err);
+                parts.push(
+                  <pre key={`sql-remaining`} style={{ margin: '8px 0', color: 'red' }}>
+                    {remainingContent}
+                  </pre>
+                );
+              }
+            } else {
+              // Add remaining text as-is
+              parts.push(
+                <p key={`text-${lastIndex}`} style={{ margin: "8px 0" }}>
+                  {remainingContent}
+                </p>
+              );
+            }
+          }
 
-        setStoredResponse(modelReply);
-        setShowButton(true); // Show "Show SQL" button
-        setShowExecuteButton(true); // Show "Execute SQL" button
+
+          modelReply = (
+            <div style={{ overflow: "auto", maxWidth: "100%", padding: "10px" }}>
+              {parts}
+            </div>
+          );
+
+          setStoredResponse(modelReply);
+          setShowButton(true); // Show "Show SQL" button
+          setShowExecuteButton(true); // Show "Execute SQL" button
         } else {
           // Otherwise, convert to string
           modelReply = convertToString(data.modelreply);
@@ -326,20 +326,28 @@ function UserChat(props) {
 
   const handleButtonClick = async () => {
     try {
-      // const sanitizeQuery = (query) => {
-      //   Example: Remove line breaks, extra spaces, and other unnecessary parts
-      //   let cleanedQuery = query
-      //     .replace(/\n/g, ' ') // Replace newlines with spaces
-      //     .replace(/\s\s+/g, ' ') // Replace multiple spaces with a single space
-      //     .replace(/WITH __prov AS \(.+?\),/g, '') // Remove unwanted WITH clause (specific part of the query)
-      //     .trim(); // Remove leading and trailing spaces
+      const sanitizeQuery = (query) => {
+        if (typeof query !== 'string') {
+          console.error('sanitizeQuery: Input is not a string.');
+          return '';
+        }
+        let cleanedQuery = query
+          .replace(/\n/g, ' ')
+          .replace(/\s\s+/g, ' ')
+          .replace(/WITH __prov AS \(.+?\),/g, '')
+          .trim();
 
-      //   // You can add more rules here to remove other unnecessary parts
-      //   return cleanedQuery;
-      // };
+        return cleanedQuery;
+      };
       const decodedStoredResponse = decodeURIComponent(storedResponse);
+      if (typeof decodedStoredResponse !== 'string') {
+        console.error('decodedStoredResponse is not a string');
+      }
+      const sanitizedQuery = sanitizeQuery(decodedStoredResponse);
+      const encodedResponse = encodeURIComponent(sanitizedQuery);
+
+      // const decodedStoredResponse = decodeURIComponent(storedResponse);
       // const encodedResponse = sanitizeQuery(decodedStoredResponse); // Encode the storedResponse
-      const encodedResponse = decodedStoredResponse; // Encode the storedResponse
       const sqlQueryUrl = `${sqlUrl}?app_cd=${appCd}&request_id=${requestId}&exec_query=${encodedResponse}`;
       const response = await fetch(sqlQueryUrl, {
         method: 'POST',
@@ -472,7 +480,7 @@ function UserChat(props) {
     }
   };
 
-function handleShowResponse() {
+  function handleShowResponse() {
     setShowResponse((prev) => {
       const newVisibility = !prev; // Toggle SQL response visibilit
       if (newVisibility) {
@@ -491,11 +499,11 @@ function handleShowResponse() {
         });
       }
 
-      return newVisibility; 
+      return newVisibility;
     });
   }
 
-  
+
   return (
 
     <Box sx={{
@@ -579,12 +587,12 @@ function handleShowResponse() {
         flexDirection: 'column', ...customStyles.inputContainer
       }}>
         <Grid container spacing={2} sx={{ width: '100%', maxWidth: '100%', position: 'fixed', bottom: '50px', left: '67%', transform: 'translateX(-50%)', width: '70%', marginLeft: '8px', flexDirection: 'column' }}>
-        {showInitialView && (
+          {showInitialView && (
             <Grid item xs={12} sm={6}>
               <SuggestedPrompts
                 prompts={suggestedPrompts}
                 sx={{
-                  mb: isSmallScreen || isMediumScreen ? '32px' : '24px', 
+                  mb: isSmallScreen || isMediumScreen ? '32px' : '24px',
                   textAlign: 'center',
                   width: '100%',
                   maxWidth: '600px',
